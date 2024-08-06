@@ -87,3 +87,4 @@ loop = render_loop([step_vector_kk, step_vector_sn, step_vector_hh], [kick, snar
 
 save_path = f"/Users/xyi/Desktop/study2/kon-sequencer/one-shot-samples/909-loop-bpm{_tempo}.wav"
 torchaudio.save(save_path, loop.squeeze(0), sample_rate=44100)
+
