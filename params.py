@@ -1,0 +1,23 @@
+#sample rate from the one-shot datasets
+SAMPLE_RATE = 16000
+
+#sequencer
+NUM_STEPS = 8
+NUM_TRACKS = 2
+TARGET_LOOP_LENGTH_SECS = 4
+TARGET_LOOP_LENGTH = SAMPLE_RATE * TARGET_LOOP_LENGTH_SECS
+
+#Global tempo range
+TEMPO_LOW = 60
+TEMPO_HIGH = 200
+
+# DataModule
+MONO = True
+UNIFYSAMPLELEN = True
+ONE_SHOT_SAMPLE_LENGTH = 16000
+
+
+#training
+BATCH_SIZE = 16
+
+
