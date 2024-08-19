@@ -1,3 +1,4 @@
+#%%
 import torch
 import torchaudio
 import torch.nn.functional as F
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 #input activation step and tempo, output activation vector
 def generate_activation_vector(step_vector, tempo = 100, step_per_beat = 2, sample_rate=44100):
     # Calculate the number of samples per beat
-    samples_per_beat = int(sample_rate * 60 / tempo)
+    samples_per_beat = int(sample_rate * 60 / tempo) #lost some samples in the end if it is not an integer
     samples_per_step = samples_per_beat // step_per_beat
 
     # Generate the activation vector
@@ -61,6 +62,8 @@ hh_path = "/Users/xyi/Desktop/study2/kon-sequencer/one-shot-samples/909-hh.wav" 
 kick = (torchaudio.load(kick_path)[0][0] + torchaudio.load(kick_path)[0][1])/2
 snare= (torchaudio.load(snare_path)[0][0] + torchaudio.load(snare_path)[0][1])/2 #mono
 hh = (torchaudio.load(hh_path)[0][0] + torchaudio.load(hh_path)[0][1])/2
+#%%
+print(kick.shape)
 #%%
 #kk_path = "/Users/xyi/Desktop/study2/kon-sequencer/one-shot-samples/909-kick-mono.wav"
 #torchaudio.save(kk_path, kick.unsqueeze(0), sample_rate=44100)
