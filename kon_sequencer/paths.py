@@ -1,6 +1,6 @@
 import os
 
-ROOT_DIR = os.path.abspath(os.path.join(__file__, '../../'))
+ROOT_DIR = os.path.abspath(os.path.join(__file__, '../../../'))
 
 DATA_DIR = os.path.join(ROOT_DIR, "freesound-oneshots-dataset")
 OUT_DIR = os.path.join(ROOT_DIR, "test-output")
