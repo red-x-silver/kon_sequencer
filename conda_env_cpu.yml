@@ -1,0 +1,19 @@
+name: kon-seq
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - auraloss
+    - librosa
+    - matplotlib
+    - neutone-sdk
+    - pedalboard
+    - pip-chill
+    - pyloudnorm
+    - pytorch-lightning[extra]
+    - scipy
+    - torchaudio
+    - torchvision
+    - wandb

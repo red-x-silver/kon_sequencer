@@ -1,0 +1,24 @@
+name: kon-seq
+channels:
+  - defaults
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.10
+  - pip
+  - pytorch
+  - torchaudio
+  - torchvision
+  - cudatoolkit=11.7
+  - pip:
+    - auraloss
+    - librosa
+    - matplotlib
+    - neutone-sdk
+    - nvitop
+    - pedalboard
+    - pip-chill
+    - pyloudnorm
+    - pytorch-lightning[extra]
+    - scipy
+    - wandb
