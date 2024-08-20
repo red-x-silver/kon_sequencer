@@ -58,22 +58,24 @@ class KonSequencer:
         tracks = F.conv1d(activation_vectors_padded.unsqueeze(0), one_shot_samples.flip(-1), padding = 0, groups = self.num_tracks)
         print(f"right after conv1d tracks shape: {tracks.shape}") 
         #shape: torch.Size([1, 2, 68800]) first is the batch dimension, second is the track dimension, third is the time dimension
+        tracks = tracks.squeeze(0).unsqueeze(1)
+        print(f"after reorganising dim to be track_dim(2),channel_dim(1 for mono),time_dim(num_samples): {tracks.shape}") 
         return tracks[:,:,:self.loop_length]
     
     def save_multi_tracks(self, multi_tracks, one_shot_samples, step_vectors, tempo, output_dir):
-        #Tracks shape: torch.Size([1, 2, 64000]) 1 for batch
-        tracks = multi_tracks.squeeze(0) #shape: torch.Size([2, 64000])
-        for idx, one_track in enumerate(tracks):
+        #Tracks shape: torch.Size([2,1,64000])  #no batch dim here
+
+        for idx, one_track in enumerate(multi_tracks):
             track_save_path = f"{output_dir}/track_{tempo}_{step_vectors[idx]}.wav"
-            torchaudio.save(track_save_path, one_track.unsqueeze(0), sample_rate=self.sample_rate)
+            torchaudio.save(track_save_path, one_track, sample_rate=self.sample_rate)
 
             oneshot_save_path = f"{output_dir}/one_shot_{tempo}_{step_vectors[idx]}.wav"
             torchaudio.save(oneshot_save_path, one_shot_samples[idx], sample_rate=self.sample_rate)
         
-        sum_track = torch.sum(tracks, dim=0)/2
+        sum_track = torch.sum(multi_tracks, dim=0)/2
         print(f"sum_track shape: {sum_track.shape}") #shape: torch.Size([1, 64000])
         sum_track_save_path = f"{output_dir}/sum_track_{tempo}.wav"
-        torchaudio.save(sum_track_save_path, sum_track.unsqueeze(0), sample_rate=self.sample_rate)
+        torchaudio.save(sum_track_save_path, sum_track, sample_rate=self.sample_rate)
 
 
 

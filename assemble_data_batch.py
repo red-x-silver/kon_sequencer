@@ -20,11 +20,13 @@ data_loader = DataLoader(kick_and_snare, batch_size=BATCH_SIZE, shuffle=True)
 data_iter = iter(data_loader)
 
 #Get the first batch
-batch = next(data_iter)
 
+"""
+batch = next(data_iter)
 print("Batch first dimension shape:", batch[0].shape)
 print("Batch second dimension shape:", batch[1].shape)
 print("Batch third dimension shape:", batch[2].shape)
+"""
 
 samples, step_vectors, tempos = next(data_iter)
 print("Batch first dimension shape:", samples.shape)
@@ -40,7 +42,7 @@ for samples, step_vectors, tempo in zip(samples, step_vectors, tempos):
     print("Tempo:", tempo)
 
     tracks = sequencer.render_multi_tracks(samples, step_vectors, tempo)
-    print("Tracks shape:", tracks.shape) #torch.Size([2, 1, 64000])
+    print("Tracks shape:", tracks.shape)
     sequencer.save_multi_tracks(tracks, samples, step_vectors, tempo, OUT_DIR)
     break
 
@@ -57,3 +59,5 @@ for samples, step_vectors, tempo in zip(samples, step_vectors, tempos):
 
 # next: process the batch so that it synthesizes a batch of loops, with shape (batch_size, 1, loop_length)
 # be careful about the last step in the loop, it should truncate the one-shot sample to be able to maintain 16000*4 total loop length
+
+#to check: sounds like some one-shot start quite late in its attack phase
