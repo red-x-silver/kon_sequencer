@@ -12,7 +12,7 @@ class GlobalTempoSampler:
     def __init__(self, tempo_low, tempo_high):
         self.tempo_low = tempo_low
         self.tempo_high = tempo_high
-        pass
+
 
     def generate_tempo(self):
         # Generate a global tempo to be shared across datasets
