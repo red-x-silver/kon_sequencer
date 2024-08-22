@@ -47,19 +47,19 @@ class KonSequencer:
     
     def render_multi_tracks(self, one_shot_samples, step_vectors, tempo):
         activation_vectors = self.generate_multitrack_activation_vectors(step_vectors, tempo)
-        print(f"activation_vectors shape: {activation_vectors.shape}") #shape: torch.Size([2, 64000])
+        #print(f"activation_vectors shape: {activation_vectors.shape}") #shape: torch.Size([2, 64000])
         pad = (self.left_safety_padding, self.right_safety_padding)
         activation_vectors_padded = F.pad(activation_vectors, pad, "constant", 0)
-        print(f"activation_vectors_padded shape: {activation_vectors_padded.shape}") #shape: torch.Size([2,81599])
-        print(f"one_shot_samples shape: {one_shot_samples.shape}") #shape: torch.Size([2, 1, 12800])
+        #print(f"activation_vectors_padded shape: {activation_vectors_padded.shape}") #shape: torch.Size([2,81599])
+        #print(f"one_shot_samples shape: {one_shot_samples.shape}") #shape: torch.Size([2, 1, 12800])
 
         #activation_vectors_padded.unsqueeze(0) is to create the batch channel
         #
         tracks = F.conv1d(activation_vectors_padded.unsqueeze(0), one_shot_samples.flip(-1), padding = 0, groups = self.num_tracks)
-        print(f"right after conv1d tracks shape: {tracks.shape}") 
+        #print(f"right after conv1d tracks shape: {tracks.shape}") 
         #shape: torch.Size([1, 2, 68800]) first is the batch dimension, second is the track dimension, third is the time dimension
         tracks = tracks.squeeze(0).unsqueeze(1)
-        print(f"after reorganising dim to be track_dim(2),channel_dim(1 for mono),time_dim(num_samples): {tracks.shape}") 
+        #print(f"after reorganising dim to be track_dim(2),channel_dim(1 for mono),time_dim(num_samples): {tracks.shape}") 
         return tracks[:,:,:self.loop_length]
     
     def save_multi_tracks(self, multi_tracks, one_shot_samples, step_vectors, tempo, output_dir):
