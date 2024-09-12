@@ -129,7 +129,7 @@ class MultiTrackDataset(Dataset):
 
         return waveforms, sample_rates
     
-
+"""
 class MultiTrackDataLoader:
     def __init__(self, datasets, batch_size, tempo_sampler, number_of_tracks = 3):
         self.datasets = datasets
@@ -154,7 +154,7 @@ class MultiTrackDataLoader:
                 one_data_point[1].append(step_vector)
             combined_batch.append(one_data_point)
         yield combined_batch
-
+"""
 
 
 

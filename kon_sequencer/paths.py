@@ -15,5 +15,12 @@ assert os.path.isdir(SN_DIR)
 assert os.path.isdir(HH_DIR)
 assert os.path.isdir(OUT_DIR)
 
+KK_TRAIN_DIR = os.path.join(KK_DIR, "train")
+SN_TRAIN_DIR = os.path.join(SN_DIR, "train")
+HH_TRAIN_DIR = os.path.join(HH_DIR, "train")
+
+KK_VAL_DIR = os.path.join(KK_DIR, "validation")
+SN_VAL_DIR = os.path.join(SN_DIR, "validation")
+HH_VAL_DIR = os.path.join(HH_DIR, "validation")
 
 #from paths import KK_DIR, SN_DIR, HH_DIR, OUT_DIR

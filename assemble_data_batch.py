@@ -10,16 +10,23 @@ from kon_sequencer.data_modules import  GlobalTempoSampler, MultiTrackDataset
 from kon_sequencer.sequencer import KonSequencer
 
 tempo_sampler = GlobalTempoSampler(TEMPO_LOW, TEMPO_HIGH)
-kick_samples, kick_sample_rates = MultiTrackDataset.load_wav_folder(KK_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
-snare_samples, snare_sample_rates = MultiTrackDataset.load_wav_folder(SN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
+kick_samples, kick_sample_rates = MultiTrackDataset.load_wav_folder(KK_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
+snare_samples, snare_sample_rates = MultiTrackDataset.load_wav_folder(SN_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
 
 kick_and_snare = MultiTrackDataset(tempo_sampler = tempo_sampler, one_shot_samples_list = [kick_samples, snare_samples], sample_rates_list = [kick_sample_rates, snare_sample_rates], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS) 
 
 #Test data loader
-data_loader = DataLoader(kick_and_snare, batch_size=BATCH_SIZE, shuffle=True)
+train_data_loader = DataLoader(kick_and_snare, batch_size=BATCH_SIZE, shuffle=True)
+
+#val
+kick_samples_val, kick_sample_rates_val = MultiTrackDataset.load_wav_folder(KK_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
+snare_samples_val, snare_sample_rates_val = MultiTrackDataset.load_wav_folder(SN_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
+
+kick_and_snare_val = MultiTrackDataset(tempo_sampler = tempo_sampler, one_shot_samples_list = [kick_samples_val, snare_samples_val], sample_rates_list = [kick_sample_rates_val, snare_sample_rates_val], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS) 
+val_data_loader = DataLoader(kick_and_snare_val, batch_size=BATCH_SIZE, shuffle=True)
 
 #Get an iterator from the DataLoader
-data_iter = iter(data_loader)
+data_iter = iter(train_data_loader)
 
 #Get the first batch
 
@@ -101,9 +108,6 @@ print("Synthesized loops batch shape:", synthesized_loops_batch.shape)
     
 """
 
-# next: process the batch so that it synthesizes a batch of loops, with shape (batch_size, 1, loop_length) done!
-# be careful about the last step in the loop (and beginning), it should truncate the one-shot sample to be able to maintain 16000*4 total loop length done!
-
 #to check: sounds like some one-shot start quite late in its attack phase
 
 
@@ -167,5 +171,58 @@ class KonSequencerModel(pl.LightningModule):
         self.log('train_loss', loss)
         return loss
 
+    def validation_step(self, batch, batch_idx):
+        samples, step_vectors, tempos = batch
+        # Combine tempos and step_vectors to form the target
+        target_step_vectors = step_vectors.view(step_vectors.shape[0], -1)
+        #print("Target step vectors shape after torch.cat along dim 1:", target_step_vectors.shape) #torch.Size([16, 16])
+        #tempo: batch, 1
+        #target: batch, 1 + num_tracks*num_steps
+        targets = torch.cat([tempos, target_step_vectors], dim=1) 
+
+        #synthesize batch_size loops
+        synthesized_loops = []
+        #process one data point by one data point where one data point comprises multi tracks
+        for samples, step_vectors, tempo in zip(samples, step_vectors, tempos):
+            #print("Samples shape of one data point:", samples.shape) #torch.Size([2, 1, 12800])
+            #print("Step vectors shape of one data point:", step_vectors.shape) #torch.Size([2, 8])
+            #print("Tempo:", tempo) 
+
+            multi_tracks = sequencer.render_multi_tracks(samples, step_vectors, tempo)  #Tracks shape: torch.Size([2,1,64000]), no batch dim here
+            sum_track = torch.sum(multi_tracks, dim=0)/2 #shape: torch.Size([1, 64000])
+            synthesized_loops.append(sum_track) #shape: torch.Size([1, 64000])
+
+        #input to the neural network
+        synthesized_loops_batch = torch.stack(synthesized_loops, dim=0)#batch, 1 for mono, sample_length
+        print("Synthesized loops batch shape:", synthesized_loops_batch.shape) #shape: torch.Size([16, 1, 64000])
+
+
+        # Predict tempo and step vector
+        y_pred = self(synthesized_loops_batch)
+
+        # Loss is computed separately for tempo and step vector
+        tempo_loss = nn.functional.mse_loss(y_pred[:, 0], targets[:, 0])
+        step_vector_loss = nn.functional.binary_cross_entropy_with_logits(y_pred[:, 1:], targets[:, 1:])
+        self.log('val_tempo_loss', tempo_loss)
+        self.log('val_step_vector_loss', step_vector_loss)
+
+        loss = tempo_loss + step_vector_loss
+
+        self.log('val_total_loss', loss)
+        return loss
+
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=1e-3)
+
+model = KonSequencerModel(sample_rate=SAMPLE_RATE, num_steps=NUM_STEPS)
+trainer = pl.Trainer(max_epochs=10)
+trainer.fit(model, train_data_loader, val_data_loader)
+
+#train/val/test split: test: manual labelled loops
+
+#split one-shot samples, fixed sequencer step vectors for validation sets
+
+#train a simple model using w and b
+
+
+
