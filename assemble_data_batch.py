@@ -16,7 +16,7 @@ tempo_sampler = GlobalTempoSampler(TEMPO_LOW, TEMPO_HIGH)
 kick_samples, kick_sample_rates = MultiTrackDataset.load_wav_folder(KK_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
 snare_samples, snare_sample_rates = MultiTrackDataset.load_wav_folder(SN_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
 
-kick_and_snare = MultiTrackDataset(tempo_sampler = tempo_sampler, one_shot_samples_list = [kick_samples, snare_samples], sample_rates_list = [kick_sample_rates, snare_sample_rates], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS) 
+kick_and_snare = MultiTrackDataset(tempo_sampler = tempo_sampler, one_shot_samples_list = [kick_samples, snare_samples], sample_rates_list = [kick_sample_rates, snare_sample_rates], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS,dataset_size=TRAIN_DATA_SIZE) 
 
 #train data loader
 train_data_loader = DataLoader(kick_and_snare, batch_size=BATCH_SIZE, shuffle=True)
@@ -25,7 +25,7 @@ train_data_loader = DataLoader(kick_and_snare, batch_size=BATCH_SIZE, shuffle=Tr
 kick_samples_val, kick_sample_rates_val = MultiTrackDataset.load_wav_folder(KK_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
 snare_samples_val, snare_sample_rates_val = MultiTrackDataset.load_wav_folder(SN_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
 
-kick_and_snare_val = MultiTrackDataset(tempo_sampler = tempo_sampler, one_shot_samples_list = [kick_samples_val, snare_samples_val], sample_rates_list = [kick_sample_rates_val, snare_sample_rates_val], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS) 
+kick_and_snare_val = MultiTrackDataset(tempo_sampler = tempo_sampler, one_shot_samples_list = [kick_samples_val, snare_samples_val], sample_rates_list = [kick_sample_rates_val, snare_sample_rates_val], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS, dataset_size=VAL_DATA_SIZE) 
 val_data_loader = DataLoader(kick_and_snare_val, batch_size=BATCH_SIZE, shuffle=True)
 
 #Get an iterator from the DataLoader

@@ -36,7 +36,9 @@ LEFT_PADDING = int(ONE_SHOT_SAMPLE_LENGTH - 1)
 RIGHT_PADDING = int(ONE_SHOT_SAMPLE_LENGTH - MAX_SAMPLES_PER_STEP) #to ensure for the slowest tempo, there are enough 0's at the last step to be convoluted with one one-shot sample.
 
 
-
+#dataset dize
+TRAIN_DATA_SIZE = 100000
+VAL_DATA_SIZE = 500
 
 
 #training

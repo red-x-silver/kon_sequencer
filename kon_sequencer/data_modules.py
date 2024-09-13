@@ -71,7 +71,7 @@ class SingleTrackDataset(Dataset):
         return waveforms, sample_rates
     
 class MultiTrackDataset(Dataset):
-    def __init__(self, tempo_sampler, one_shot_samples_list, sample_rates_list, num_steps=8, num_tracks = 3):
+    def __init__(self, tempo_sampler, one_shot_samples_list, sample_rates_list, num_steps=8, num_tracks = 3, dataset_size=100000):
         super(MultiTrackDataset, self).__init__()
         #one_shot_samples are list of tensors already read by torchaudio.load()
         self.one_shot_samples_list = one_shot_samples_list
@@ -79,11 +79,12 @@ class MultiTrackDataset(Dataset):
         self.num_steps = num_steps
         self.num_tracks = num_tracks
         self.tempo_sampler = tempo_sampler
+        self.dataset_size = dataset_size
 
         assert len(self.one_shot_samples_list) == self.num_tracks
 
     def __len__(self):
-        return 100000  # Simulate a large dataset
+        return self.dataset_size
     
     def __getitem__(self, idx):
         tempo = self.tempo_sampler.generate_tempo()
