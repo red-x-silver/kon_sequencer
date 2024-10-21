@@ -2,7 +2,9 @@
 import torch
 import torchaudio
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
+import os
+
+#difference between data_modules and sequencer is that data_modules is for data processing done on CPU, sequencer is for audio processing better to be done on GPU
 
 #%%
 class KonSequencer:
@@ -61,22 +63,25 @@ class KonSequencer:
         tracks = tracks.squeeze(0).unsqueeze(1)
         #print(f"after reorganising dim to be track_dim(2),channel_dim(1 for mono),time_dim(num_samples): {tracks.shape}") 
         return tracks[:,:,:self.loop_length]
-    
-    def save_multi_tracks(self, multi_tracks, one_shot_samples, step_vectors, tempo, output_dir):
+    """
+    def save_multi_tracks(self, multi_tracks, one_shot_samples, tempo, output_dir, instru_names = ["kick", "snare", "hihats"], save_multitracks = False, stereo = False):
         #Tracks shape: torch.Size([2,1,64000])  #no batch dim here
 
-        for idx, one_track in enumerate(multi_tracks):
-            track_save_path = f"{output_dir}/track_{tempo}_{step_vectors[idx]}.wav"
-            torchaudio.save(track_save_path, one_track, sample_rate=self.sample_rate)
+        if save_multitracks:
+            for idx, one_track in enumerate(multi_tracks):
+                track_save_path = f"{output_dir}/{instru_names[idx]}.wav"
+                torchaudio.save(track_save_path, one_track, sample_rate=self.sample_rate)
 
-            oneshot_save_path = f"{output_dir}/one_shot_{tempo}_{step_vectors[idx]}.wav"
-            torchaudio.save(oneshot_save_path, one_shot_samples[idx], sample_rate=self.sample_rate)
+                oneshot_save_path = f"{output_dir}/one_shot_{instru_names[idx]}.wav"
+                torchaudio.save(oneshot_save_path, one_shot_samples[idx], sample_rate=self.sample_rate)
         
-        sum_track = torch.sum(multi_tracks, dim=0)/2
+        sum_track = torch.sum(multi_tracks, dim=0)/len(multi_tracks)
         print(f"sum_track shape: {sum_track.shape}") #shape: torch.Size([1, 64000])
-        sum_track_save_path = f"{output_dir}/sum_track_{tempo}.wav"
+        sum_track_save_path = f"{output_dir}/sum_track_bpm{tempo}.wav"
+        if stereo:
+            sum_track = sum_track.repeat(2, 1) 
         torchaudio.save(sum_track_save_path, sum_track, sample_rate=self.sample_rate)
-
+    """
 
 
     def render_one_track(self, one_shot_sample, step_vector, tempo):

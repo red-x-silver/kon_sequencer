@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from kon_sequencer.paths import *
 from kon_sequencer.params import *
-from kon_sequencer.data_modules import  GlobalTempoSampler, MultiTrackDataset
+from kon_sequencer.data_modules import  GlobalTempoSampler, MultiTrackDataset, OneShotSamplesDataset
 
 from kon_sequencer.sequencer import KonSequencer
 
@@ -13,34 +13,28 @@ from pytorch_lightning.loggers import WandbLogger
 
 
 tempo_sampler = GlobalTempoSampler(TEMPO_LOW, TEMPO_HIGH)
-kick_samples, kick_sample_rates = MultiTrackDataset.load_wav_folder(KK_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
-snare_samples, snare_sample_rates = MultiTrackDataset.load_wav_folder(SN_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
-
-kick_and_snare = MultiTrackDataset(tempo_sampler = tempo_sampler, one_shot_samples_list = [kick_samples, snare_samples], sample_rates_list = [kick_sample_rates, snare_sample_rates], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS,dataset_size=TRAIN_DATA_SIZE) 
+#for training data 
+kk_one_shots_dataset = OneShotSamplesDataset(KK_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH, ext = ["wav"]) # Replace with actual paths to your one-shot samples
+sn_one_shots_dataset = OneShotSamplesDataset(SN_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH, ext = ["wav"]) # Replace with actual paths to your one-shot samples
+hh_one_shots_dataset = OneShotSamplesDataset(HH_TRAIN_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH, ext = ["wav"]) # Replace with actual paths to your one-shot samples
+kk_snare_hh = MultiTrackDataset(tempo_sampler = tempo_sampler, oneShotSamplesDataset_Lists = [kk_one_shots_dataset, sn_one_shots_dataset, hh_one_shots_dataset], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS,dataset_size=TRAIN_DATA_SIZE) 
 
 #train data loader
-train_data_loader = DataLoader(kick_and_snare, batch_size=BATCH_SIZE, shuffle=True)
+train_data_loader = DataLoader(kk_snare_hh, batch_size=BATCH_SIZE, shuffle=True)
 
+#for validation data
+kk_one_shots_dataset_val = OneShotSamplesDataset(KK_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH, ext = ["wav"]) # Replace with actual paths to your one-shot samples
+sn_one_shots_dataset_val = OneShotSamplesDataset(SN_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH, ext = ["wav"]) # Replace with actual paths to your one-shot samples
+hh_one_shots_dataset_val = OneShotSamplesDataset(HH_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH, ext = ["wav"]) # Replace with actual paths to your one-shot samples
+kk_snare_hh_val = MultiTrackDataset(tempo_sampler = tempo_sampler, oneShotSamplesDataset_Lists = [kk_one_shots_dataset_val, sn_one_shots_dataset_val, hh_one_shots_dataset_val], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS,dataset_size=TRAIN_DATA_SIZE) 
 #val data loader
-kick_samples_val, kick_sample_rates_val = MultiTrackDataset.load_wav_folder(KK_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
-snare_samples_val, snare_sample_rates_val = MultiTrackDataset.load_wav_folder(SN_VAL_DIR,make_mono=MONO, unifyLenth=UNIFYSAMPLELEN, targetLength=ONE_SHOT_SAMPLE_LENGTH) # Replace with actual paths to your one-shot samples
-
-kick_and_snare_val = MultiTrackDataset(tempo_sampler = tempo_sampler, one_shot_samples_list = [kick_samples_val, snare_samples_val], sample_rates_list = [kick_sample_rates_val, snare_sample_rates_val], num_steps=NUM_STEPS, num_tracks = NUM_TRACKS, dataset_size=VAL_DATA_SIZE) 
-val_data_loader = DataLoader(kick_and_snare_val, batch_size=BATCH_SIZE, shuffle=True)
+val_data_loader = DataLoader(kk_snare_hh_val, batch_size=BATCH_SIZE, shuffle=True)
 
 #Get an iterator from the DataLoader
 #data_iter = iter(train_data_loader)
 
 
 
-"""
-dev code for checking the shape of one batch
-#Get the first batch
-batch = next(data_iter)
-print("Batch first dimension shape:", batch[0].shape)
-print("Batch second dimension shape:", batch[1].shape)
-print("Batch third dimension shape:", batch[2].shape)
-"""
 
 """
 dev code for generating each data points within one batch 
@@ -102,19 +96,31 @@ print("Synthesized loops batch shape:", synthesized_loops_batch.shape)
 
 
 """
+sequencer = KonSequencer(num_tracks=NUM_TRACKS, num_steps=NUM_STEPS, steps_per_beat=STEPS_PER_BEAT, sample_rate=SAMPLE_RATE, loop_length = TARGET_LOOP_LENGTH, left_safety_padding = LEFT_PADDING,right_safety_padding = RIGHT_PADDING)
     #synthesize one track, is working
-    for sample, step_vector in zip(samples, step_vectors):
-        one_track = sequencer.render_one_track(sample, step_vector, tempo)
+data_iter = iter(train_data_loader)
+for i in range(1):
+    samples, step_vectors, tempos = next(data_iter)
+    print("Samples shape of one batch:", samples.shape) #torch.Size([2, 1, 12800])
+    print("Step vectors shape of one batch:", step_vectors.shape) #torch.Size([2, 8])
+    print("Tempo of one batch:", tempos)
+    for samples, step_vectors, tempo in zip(samples, step_vectors, tempos):
+
+        print("Samples shape of one data point:", samples.shape) #torch.Size([2, 1, 12800])
+        print("Step vectors shape of one data point:", step_vectors.shape) #torch.Size([2, 8])
+        print("Tempo of one data point:", tempo)
+        #multi_tracks = sequencer.render_multi_tracks(samples, step_vectors, tempo)  #Tracks shape: torch.Size([2,1,64000]), no batch dim here
+       
+
         #save to out, with tempo and step vectors info, and listen
-        sequencer.save_one_track(one_track, sample, step_vector, tempo, OUT_DIR)
+        #sequencer.save_multi_tracks(multi_tracks, samples, step_vectors, tempo, OUT_DIR, save_sum_track_only = False, stereo=True)
+
         break
-    #break
     
-"""
+
 
 #to check: sounds like some one-shot start quite late in its attack phase
-
-
+"""
 sequencer = KonSequencer(num_tracks=NUM_TRACKS, num_steps=NUM_STEPS, steps_per_beat=STEPS_PER_BEAT, sample_rate=SAMPLE_RATE, loop_length = TARGET_LOOP_LENGTH, left_safety_padding = LEFT_PADDING,right_safety_padding = RIGHT_PADDING)
 
 class KonSequencerModel(pl.LightningModule):
@@ -144,8 +150,8 @@ class KonSequencerModel(pl.LightningModule):
         return x
     
     def _get_preds_loss_accuracy(self, batch):
-        """convenience function since train/valid/test steps are similar"""
-        samples, step_vectors, tempos = batch
+        #convenience function since train/valid/test steps are similar
+        samples, step_vectors, tempos, one_shot_names = batch
         # Combine tempos and step_vectors to form the target
         target_step_vectors = step_vectors.view(step_vectors.shape[0], -1)
         #print("Target step vectors shape after torch.cat along dim 1:", target_step_vectors.shape) #torch.Size([16, 16])
@@ -205,13 +211,12 @@ trainer = pl.Trainer(max_epochs=10, logger=wandb_logger,log_every_n_steps=TRAINE
 trainer.fit(model, train_data_loader, val_data_loader)
 
 #train/val/test split: test: manual labelled loops!
-
 #split one-shot samples, fixed sequencer step vectors for validation sets!
-
 #train a simple model using w and b.
-
-
 #place holder step vectors for absent tracks
+
+
+
 
 
 

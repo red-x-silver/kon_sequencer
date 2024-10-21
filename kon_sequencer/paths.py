@@ -23,4 +23,8 @@ KK_VAL_DIR = os.path.join(KK_DIR, "validation")
 SN_VAL_DIR = os.path.join(SN_DIR, "validation")
 HH_VAL_DIR = os.path.join(HH_DIR, "validation")
 
-#from paths import KK_DIR, SN_DIR, HH_DIR, OUT_DIR
+KK_TEST_DIR = os.path.join(KK_DIR, "test")
+SN_TEST_DIR = os.path.join(SN_DIR, "test")
+HH_TEST_DIR = os.path.join(HH_DIR, "test")
+
+TEST_RANDOMSET_DIR = os.path.join(DATA_DIR, "Test_RandomSet")

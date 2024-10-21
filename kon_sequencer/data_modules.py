@@ -7,6 +7,8 @@ import os
 import torch.nn.functional as F
 
 
+#difference between data_modules and sequencer is that data_modules is for data processing done on CPU, sequencer is for audio processing better to be done on GPU
+
 class GlobalTempoSampler:
     def __init__(self, tempo_low, tempo_high):
         self.tempo_low = tempo_low
@@ -56,7 +58,7 @@ class OneShotSamplesDataset():
         self.unifyLenth = unifyLenth
         self.targetLength = targetLength
         self.targetExt = ext
-        self.load_one_shot_samples(self.input_dir)
+        self.load_one_shot_samples()
         
     def load_one_shot_samples(self):
         #for possibly nested folder
@@ -121,6 +123,9 @@ class MultiTrackDataset(Dataset):
             
         # Return the sample, step_vector, and externally provided tempo
         return torch.stack(samples, dim=0), torch.stack(step_vectors, dim=0), tempo, sample_names
+    
+#todo: add a function to read from pior step vectors (lists for kk, snare and hh), tempos (a distribution?)
+#
  
     
 """

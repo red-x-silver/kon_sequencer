@@ -46,4 +46,9 @@ BATCH_SIZE = 16
 MODEL_WATCH_FREQ = 1
 TRAINER_LOG_EVERY_N_STEPS=1
 
+#random seed
+GLOBAL_SEED = 42
+
+#number of loops in the test random set
+NUM_OF_LOOPS_TEST_RANDOM = 1800 #2 hours of loops
 
