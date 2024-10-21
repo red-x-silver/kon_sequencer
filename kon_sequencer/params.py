@@ -17,7 +17,7 @@ TEMPO_LOW = 60
 TEMPO_HIGH = 200
 
 #sequencer
-NUM_TRACKS = 2
+NUM_TRACKS = 3
 print(f"specified number of tracks of the sequencer: {NUM_TRACKS}")
 
 
