@@ -52,3 +52,6 @@ GLOBAL_SEED = 42
 #number of loops in the test random set
 NUM_OF_LOOPS_TEST_RANDOM = 1800 #2 hours of loops
 
+#number of loops in the test random set
+NUM_OF_LOOPS_TEST_PRIOR = 3 
+

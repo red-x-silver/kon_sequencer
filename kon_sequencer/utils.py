@@ -1,9 +1,8 @@
 import os
 import torchaudio
-import torch
 import json
 
-def save_multi_tracks(multi_tracks, one_shot_samples, tempo, output_dir, sample_rate, instru_names = ["kick", "snare", "hihats"], save_multitracks = False, stereo = False):
+def save_multi_tracks(sum_track, multi_tracks, one_shot_samples, tempo, output_dir, sample_rate, instru_names = ["kick", "snare", "hihats"], save_multitracks = False, stereo = False):
     #Tracks shape: torch.Size([2,1,64000])  #no batch dim here
 
     if save_multitracks:
@@ -14,8 +13,7 @@ def save_multi_tracks(multi_tracks, one_shot_samples, tempo, output_dir, sample_
             oneshot_save_path = os.path.join(output_dir, f"one_shot_{instru_names[idx]}.wav")
             torchaudio.save(oneshot_save_path, one_shot_samples[idx], sample_rate=sample_rate)
     
-    sum_track = torch.sum(multi_tracks, dim=0)/len(multi_tracks)
-    print(f"sum_track shape: {sum_track.shape}") #shape: torch.Size([1, 64000])
+    #sum_track is mono by default
     sum_track_save_path = os.path.join(output_dir, f"sum_track_bpm{tempo}.wav")
     if stereo:
         sum_track = sum_track.repeat(2, 1) 

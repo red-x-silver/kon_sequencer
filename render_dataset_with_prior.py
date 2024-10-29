@@ -1,3 +1,4 @@
+import json
 import os
 from torch.utils.data import DataLoader
 import torch
@@ -23,8 +24,8 @@ if torch.cuda.is_available():
 #Set seed for random
 random.seed(GLOBAL_SEED)
 
-NUM_OF_LOOPS_TO_GENERATE = NUM_OF_LOOPS_TEST_RANDOM
-SAVE_DIR = TEST_RANDOMSET_DIR
+NUM_OF_LOOPS_TO_GENERATE = NUM_OF_LOOPS_TEST_PRIOR
+SAVE_DIR = TEST_PRIORSET_DIR
 
 
 tempo_sampler = GlobalTempoSampler(TEMPO_LOW, TEMPO_HIGH)
@@ -40,18 +41,52 @@ val_data_loader = DataLoader(kk_snare_hh_val, batch_size=1, shuffle=True)
 
 data_iter = iter(val_data_loader)
 
+def load_step_vectors(file_path):
+    """
+    Reads a JSON file containing step vectors and returns a list of vectors.
 
-def random_generate_loops_and_save(data_iter, num_of_loops, output_dir):
+    :param file_path: Path to the JSON file.
+    :return: List of 8-step sequencer vectors.
+    """
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    
+    # Extracting and returning the step vectors
+    return data.get("step_vectors", [])
+
+
+kick_step_vectors = load_step_vectors(KK_PRIOR_STEP_VECTORS)
+snare_step_vectors = load_step_vectors(SN_PRIOR_STEP_VECTORS)
+hihats_step_vectors = load_step_vectors(HH_PRIOR_STEP_VECTORS)
+
+def random_generate_step_vectors_from_prior(kick_step_vectors, snare_step_vectors, hihats_step_vectors):
+    """
+    Randomly selects step vectors from the prior set for each instrument.
+
+    :return: A tuple containing the step vectors for each instrument.
+    """
+    kick_vector = torch.Tensor(random.choice(kick_step_vectors))
+    snare_vector = torch.Tensor(random.choice(snare_step_vectors))
+    hihats_vector = torch.Tensor(random.choice(hihats_step_vectors))
+    step_vectors = (kick_vector, snare_vector, hihats_vector)
+    return torch.stack(step_vectors, dim=0)
+
+
+
+def generate_loops_with_prior_rhythms_and_save(data_iter, num_of_loops, output_dir):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     for i in range(num_of_loops):
-        samples, step_vectors, tempos, sample_names = next(data_iter)
+        samples, random_step_vectors, tempos, sample_names = next(data_iter)
         #print(sample_names)
         #print("Samples shape of one batch:", samples.shape) #torch.Size([2, 1, 12800])
         #print("Step vectors shape of one batch:", step_vectors.shape) #torch.Size([2, 8])
+        
+        #grab step_vectors from the prior set
+        step_vectors = random_generate_step_vectors_from_prior(kick_step_vectors, snare_step_vectors, hihats_step_vectors)
        
-        for samples, step_vectors, tempo in zip(samples, step_vectors, tempos):      
+        for samples, step_vectors, tempo in zip(samples, step_vectors.unsqueeze(0), tempos):      
             tracks = sequencer.render_multi_tracks(samples, step_vectors, tempo)
             sum_track = torch.sum(tracks/len(tracks), dim=0)
             print(f"sum_track shape: {sum_track.shape}") #shape: torch.Size([1, 64000])
@@ -66,5 +101,5 @@ def random_generate_loops_and_save(data_iter, num_of_loops, output_dir):
 
 
 if __name__ == "__main__":
-    random_generate_loops_and_save(data_iter, NUM_OF_LOOPS_TO_GENERATE, SAVE_DIR)
+    generate_loops_with_prior_rhythms_and_save(data_iter, NUM_OF_LOOPS_TO_GENERATE, SAVE_DIR)
     print("Done")
