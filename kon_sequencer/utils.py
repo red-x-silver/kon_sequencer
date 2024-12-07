@@ -21,9 +21,9 @@ def save_multi_tracks(sum_track, multi_tracks, one_shot_samples, tempo, output_d
 
 def log_info_to_json(output_dir, step_vectors,sample_names, tempo):
     meta_data = {
-        "kick_step_vector": ' '.join(map(str, step_vectors[0].tolist())),
-        "snare_step_vector": ' '.join(map(str, step_vectors[1].tolist())),
-        "hh_step_vector": ' '.join(map(str, step_vectors[2].tolist())),
+        "kick_step_vector": ' '.join(map(lambda x: str(int(x)), step_vectors[0].tolist())),
+        "snare_step_vector": ' '.join(map(lambda x: str(int(x)), step_vectors[1].tolist())),
+        "hh_step_vector": ' '.join(map(lambda x: str(int(x)), step_vectors[2].tolist())),
         "tempo": tempo,
         "kick_sample_name": sample_names[0],
         "snare_sample_name": sample_names[1],
