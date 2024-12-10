@@ -11,7 +11,7 @@ from kon_sequencer.data_modules import  GlobalTempoSampler, MultiTrackDataset, O
 
 from kon_sequencer.sequencer import KonSequencer
 
-from kon_sequencer.utils import save_multi_tracks, log_info_to_json
+from kon_sequencer.utils import save_multi_tracks, log_info_to_json, detect_and_normalize_clipping
 
 # Set seed for NumPy
 np.random.seed(GLOBAL_SEED)
@@ -88,12 +88,17 @@ def generate_loops_with_prior_rhythms_and_save(data_iter, num_of_loops, output_d
        
         for samples, step_vectors, tempo in zip(samples, step_vectors.unsqueeze(0), tempos):      
             tracks = sequencer.render_multi_tracks(samples, step_vectors, tempo)
-            sum_track = torch.sum(tracks/len(tracks), dim=0)
+            sum_track = torch.sum(tracks, dim=0)
+            #if digital cipping, aka any number exceeding 1, normalize
+            sum_track, max_abs_value = detect_and_normalize_clipping(sum_track)
+            tracks = tracks/max_abs_value
+            one_shot_samples = samples/max_abs_value
+
             print(f"sum_track shape: {sum_track.shape}") #shape: torch.Size([1, 64000])
             one_loop_folder_path = os.path.join(output_dir, f"loop_{i}")
             os.makedirs(one_loop_folder_path, exist_ok=True)
             save_multi_tracks(sum_track=sum_track, multi_tracks = tracks, one_shot_samples = samples, tempo = tempo.item(), output_dir = one_loop_folder_path, sample_rate = SAMPLE_RATE, save_multitracks=True)
-            log_info_to_json(output_dir = one_loop_folder_path, step_vectors = step_vectors, tempo = tempo.item(), sample_names = sample_names)
+            log_info_to_json(output_dir = one_loop_folder_path, step_vectors = step_vectors, tempo = tempo.item(), sample_names = sample_names, applied_normalizer = torch.Tensor(max_abs_value).item())
 
 
         #save to out, with tempo and step vectors info, and listen

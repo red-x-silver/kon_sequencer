@@ -61,7 +61,7 @@ class KonSequencer:
         #print(f"right after conv1d tracks shape: {tracks.shape}") 
         #shape: torch.Size([1, 2, 68800]) first is the batch dimension, second is the track dimension, third is the time dimension
         tracks = tracks.squeeze(0).unsqueeze(1)
-        #print(f"after reorganising dim to be track_dim(2),channel_dim(1 for mono),time_dim(num_samples): {tracks.shape}") 
+        #print(f"after reorganising dim to be track_dim(2 for 2 instruments),channel_dim(1 for mono),time_dim(num_samples): {tracks.shape}") 
         return tracks[:,:,:self.loop_length]
     """
     def save_multi_tracks(self, multi_tracks, one_shot_samples, tempo, output_dir, instru_names = ["kick", "snare", "hihats"], save_multitracks = False, stereo = False):

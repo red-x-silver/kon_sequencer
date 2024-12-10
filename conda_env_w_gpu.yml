@@ -1,6 +1,7 @@
 name: kon-seq
 channels:
   - defaults
+  - conda-forge
   - pytorch
   - nvidia
 dependencies:

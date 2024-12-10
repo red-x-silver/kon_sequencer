@@ -27,8 +27,10 @@ KK_TEST_DIR = os.path.join(KK_DIR, "test")
 SN_TEST_DIR = os.path.join(SN_DIR, "test")
 HH_TEST_DIR = os.path.join(HH_DIR, "test")
 
-TEST_RANDOMSET_DIR = os.path.join(DATA_DIR, "Test_RandomSet_no_clipping")
+TEST_RANDOMSET_DIR = os.path.join(DATA_DIR, "Test_RandomSet")
 TEST_PRIORSET_DIR = os.path.join(DATA_DIR, "Test_PriorSet")
+TEST_RANDOMSET_WAVONLY_DIR = os.path.join(DATA_DIR, "Test_RandomSet_WAV")
+TEST_PRIORSET_WAVONLY_DIR = os.path.join(DATA_DIR, "Test_PriorSet_WAV")
 
 PRIOR_STEP_VECTORS_DIR = os.path.join(ROOT_DIR, "kon-sequencer", "prior_step_vectors")
 KK_PRIOR_STEP_VECTORS = os.path.join(PRIOR_STEP_VECTORS_DIR, "kick.json")

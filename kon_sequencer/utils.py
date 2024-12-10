@@ -1,4 +1,5 @@
 import os
+import torch
 import torchaudio
 import json
 
@@ -19,7 +20,7 @@ def save_multi_tracks(sum_track, multi_tracks, one_shot_samples, tempo, output_d
         sum_track = sum_track.repeat(2, 1) 
     torchaudio.save(sum_track_save_path, sum_track, sample_rate= sample_rate)
 
-def log_info_to_json(output_dir, step_vectors,sample_names, tempo):
+def log_info_to_json(output_dir, step_vectors,sample_names, tempo, applied_normalizer):
     meta_data = {
         "kick_step_vector": ' '.join(map(lambda x: str(int(x)), step_vectors[0].tolist())),
         "snare_step_vector": ' '.join(map(lambda x: str(int(x)), step_vectors[1].tolist())),
@@ -27,13 +28,26 @@ def log_info_to_json(output_dir, step_vectors,sample_names, tempo):
         "tempo": tempo,
         "kick_sample_name": sample_names[0],
         "snare_sample_name": sample_names[1],
-        "hh_sample_name": sample_names[2]
+        "hh_sample_name": sample_names[2],
+        "applied_normalizer": applied_normalizer,
     }
     json_file_path = os.path.join(output_dir, f"seq_params.json")
     with open(json_file_path, 'w') as f:
         json.dump(meta_data, f)
 
+def detect_and_normalize_clipping(input_audio_tensor):
+    # Find the maximum absolute value in the tensor
+    max_abs_value = torch.max(torch.abs(input_audio_tensor))
 
+    # Normalize the tensor only if the maximum value exceeds 1
+    if max_abs_value > 1:
+        print("Clipping detected!")
+        input_audio_tensor = input_audio_tensor / max_abs_value  # Normalize the tensor to prevent clipping
+        print(f"Tensor normalized by {max_abs_value} to prevent clipping.")
+    else:
+        max_abs_value = 1
+    
+    return input_audio_tensor, max_abs_value
 
 
 
